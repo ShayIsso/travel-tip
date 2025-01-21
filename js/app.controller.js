@@ -117,11 +117,11 @@ function handleConfirmModal() {
 }
 
 function showConfirmModal() {
-  document.querySelector('.confirm-modal').classList.remove('hidden')
+  document.querySelector('.confirm-modal').style.display = 'block'
 }
 
 function hideConfirmModal() {
-  document.querySelector('.confirm-modal').classList.add('hidden')
+  document.querySelector('.confirm-modal').style.display = 'none'
 }
 
 function onSearchAddress(ev) {
