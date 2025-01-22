@@ -2,6 +2,8 @@ import { utilService } from './services/util.service.js'
 import { locService } from './services/loc.service.js'
 import { mapService } from './services/map.service.js'
 
+var gUserPose
+
 window.onload = onInit
 
 // To make things easier in this project structure
@@ -39,10 +41,16 @@ function renderLocs(locs) {
   var strHTML = locs
     .map((loc) => {
       const className = loc.id === selectedLocId ? 'active' : ''
+      const distance = gUserPose
+        ? 'Distance: ' +
+          utilService.getDistance(gUserPose, loc.geo, 'K') +
+          ' KM.'
+        : ''
       return `
         <li class="loc ${className}" data-id="${loc.id}">
             <h4>  
                 <span>${loc.name}</span>
+                <span>${distance}</span>
                 <span title="${loc.rate} stars">${'★'.repeat(loc.rate)}</span>
             </h4>
             <p class="muted">
@@ -175,6 +183,7 @@ function onPanToUserPos() {
     .getUserPosition()
     .then((latLng) => {
       mapService.panTo({ ...latLng, zoom: 15 })
+      gUserPose = { ...latLng }
       unDisplayLoc()
       loadAndRenderLocs()
       flashMsg(`You are at Latitude: ${latLng.lat} Longitude: ${latLng.lng}`)
@@ -221,9 +230,14 @@ function displayLoc(loc) {
   mapService.panTo(loc.geo)
   mapService.setMarker(loc)
 
+  const distance = gUserPose
+    ? 'Distance: ' + utilService.getDistance(gUserPose, loc.geo, 'K') + ' KM.'
+    : ''
+
   const el = document.querySelector('.selected-loc')
   el.querySelector('.loc-name').innerText = loc.name
   el.querySelector('.loc-address').innerText = loc.geo.address
+  el.querySelector('.loc-distance').innerText = distance
   el.querySelector('.loc-rate').innerHTML = '★'.repeat(loc.rate)
   el.querySelector('[name=loc-copier]').value = window.location
   el.classList.add('show')
