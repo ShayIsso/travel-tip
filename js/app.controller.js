@@ -112,15 +112,15 @@ function handleConfirmModal() {
     const elNo = document.querySelector('.no-btn')
     showConfirmModal()
 
-    elYes.addEventListener('click', () => {
+    elYes.onclick = () => {
       hideConfirmModal()
       resolve(true)
-    })
+    }
 
-    elNo.addEventListener('click', () => {
+    elNo.onclick = () => {
       hideConfirmModal()
       resolve(false)
-    })
+    }
   })
 }
 
@@ -147,25 +147,68 @@ function onSearchAddress(ev) {
 }
 
 function onAddLoc(geo) {
-  const locName = prompt('Loc name', geo.address || 'Just a place')
-  if (!locName) return
+  const elLocDialog = document.querySelector('.location-dialog')
+  onDialog(geo).then((loc) => {
+    locService
+      .save(loc)
+      .then((savedLoc) => {
+        flashMsg(`Added Location (id: ${savedLoc.id})`)
+        utilService.updateQueryParams({ locId: savedLoc.id })
+        loadAndRenderLocs()
+      })
+      .catch((err) => {
+        console.error('Error adding location:', err)
+        flashMsg('Cannot add location')
+      })
+      .finally(() => {
+        restDialog()
+      })
+  })
+}
 
-  const loc = {
-    name: locName,
-    rate: +prompt(`Rate (1-5)`, '3'),
-    geo,
-  }
-  locService
-    .save(loc)
-    .then((savedLoc) => {
-      flashMsg(`Added Location (id: ${savedLoc.id})`)
-      utilService.updateQueryParams({ locId: savedLoc.id })
-      loadAndRenderLocs()
-    })
-    .catch((err) => {
-      console.error('OOPs:', err)
-      flashMsg('Cannot add location')
-    })
+function onDialog(geo, loc = null) {
+  return new Promise((resolve, reject) => {
+    const elLocDialog = document.querySelector('.location-dialog')
+
+    const elSaveBtn = elLocDialog.querySelector('.save-btn')
+    const elCancelBtn = elLocDialog.querySelector('.cancel-btn')
+
+    if (loc) {
+      elLocDialog.querySelector('.location-name').value = loc.name
+      elLocDialog.querySelector('.location-rate').value = loc.rate
+    }
+    elLocDialog.showModal()
+
+    elCancelBtn.onclick = () => {
+      elLocDialog.close()
+      reject('Dialog canceled')
+    }
+
+    elSaveBtn.onclick = () => {
+      const name = elLocDialog.querySelector('.location-name').value
+      const rate = +elLocDialog.querySelector('.location-rate').value
+
+      elLocDialog.dataset.geo = JSON.stringify(geo)
+      elLocDialog.dataset.name = name
+      elLocDialog.dataset.rate = rate
+      elLocDialog.close()
+
+      resolve({
+        geo,
+        name,
+        rate,
+      })
+    }
+  })
+}
+
+function restDialog() {
+  const elLocDialog = document.querySelector('.location-dialog')
+  elLocDialog.dataset.geo = ''
+  elLocDialog.dataset.name = ''
+  elLocDialog.dataset.rate = ''
+  elLocDialog.querySelector('.location-name').value = ''
+  elLocDialog.querySelector('.location-rate').value = ''
 }
 
 function loadAndRenderLocs() {
@@ -196,20 +239,25 @@ function onPanToUserPos() {
 
 function onUpdateLoc(locId) {
   locService.getById(locId).then((loc) => {
-    const rate = prompt('New rate?', loc.rate)
-    if (rate && rate !== loc.rate) {
-      loc.rate = rate
-      locService
-        .save(loc)
-        .then((savedLoc) => {
-          flashMsg(`Rate was set to: ${savedLoc.rate}`)
-          loadAndRenderLocs()
-        })
-        .catch((err) => {
-          console.error('OOPs:', err)
-          flashMsg('Cannot update location')
-        })
-    }
+    onDialog(loc.geo, loc)
+      .then((updatedLocData) => {
+        loc.name = updatedLocData.name
+        loc.rate = updatedLocData.rate
+        return locService.save(loc)
+      })
+      .then((savedLoc) => {
+        flashMsg(
+          `Location updated: ${savedLoc.name} with rate: ${savedLoc.rate}`
+        )
+        loadAndRenderLocs()
+      })
+      .catch((err) => {
+        console.error('Error updating location:', err)
+        flashMsg('Cannot update location')
+      })
+      .finally(() => {
+        restDialog()
+      })
   })
 }
 
