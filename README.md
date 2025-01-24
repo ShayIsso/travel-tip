@@ -9,18 +9,24 @@ TravelTip is an app that keeps a list of favorite locations
 - The app allows the user to keep and manage locations
 - The user can also search for an address and pan the map to that point
 - The User can pan the map to his own geo-location
+- Shows distance to locations when user position is known
+- Modern dialog modal for adding and updating locations
+- Advanced grouping by last update time (today, past, never)
+- Text filtering that includes location address
+- Enhanced sorting capabilities including creation time
 
 ## Locations CRUDL 
-- Create – click on the map prompts for name and rate
-- Read – Selected location details (see below) 
-- Update – can update location rate
-- Delete – can delete a location
-- List - Including filtering, sorting and grouping
+- Create – Use a modern dialog modal to add new locations with name and rate
+- Read – Selected location details including distance from user (when available)
+- Update – Update location details using a dialog modal
+- Delete – Remove locations with confirmation prompt
+- List - Including filtering, sorting (by creation time/rate) and grouping (by last update)
 
 ## Selected Location
 - Displayed in the header
 - Location is active in the list (gold color)
 - Marker on the map
+- Shows distance from user's position when available
 - Reflected in query params 
 - Copy url to clipboard
 - Share via Web-Share API
@@ -51,7 +57,8 @@ export const locService = {
     save,
     setFilterBy,
     setSortBy,
-    getLocCountByRateMap
+    getLocCountByRateMap,
+    getLocCountByLastUpdateMap
 }
 
 export const mapService = {
@@ -78,7 +85,8 @@ window.app = {
     onCopyLoc,
     onShareLoc,
     onSetSortBy,
-    onSetFilterBy
+    onSetFilterBy,
+    onSaveLoc
 }
 ```
 
