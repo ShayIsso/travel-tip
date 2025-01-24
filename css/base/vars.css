@@ -1,4 +1,4 @@
-:root {
+/* :root {
     --bg1: darkslateblue;
     --bg2: darkorchid;
     --bg3: darkmagenta;
@@ -7,16 +7,48 @@
     --color3: gold;
     --color4: goldenrod;
     --gray1: lightgray;
+} */
+
+/* :root {
+  --bg1: rgb(37, 13, 195);
+  --bg2: rgb(26, 110, 146);
+  --bg3: rgb(9, 49, 226);
+  --color1: aliceblue;
+  --color2: rgb(94, 169, 240);
+  --color3: rgb(211, 187, 48);
+  --color4: rgb(90, 66, 6);
+  --gray1: lightgray;
+} */
+
+/* :root {
+  --bg1: #2c3e50;
+  --bg2: #34495e;
+  --bg3: #7f8c8d;
+  --color1: #ecf0f1;
+  --color2: #e74c3c;
+  --color3: #f1c40f;
+  --color4: #e67e22;
+  --gray1: #bdc3c7;
+} */
+
+:root {
+  --bg1: #1abc9c;
+  --bg2: #16a085;
+  --bg3: #2ecc71;
+  --color1: #ecf0f1;
+  --color2: #3498db;
+  --color3: #e74c3c;
+  --color4: #f39c12;
+  --gray1: #95a5a6;
 }
 
-/* Another theme */
 /* :root {
-    --bg1: rgb(37, 13, 195);
-    --bg2: rgb(26, 110, 146);
-    --bg3: rgb(9, 49, 226);
-    --color1: aliceblue;
-    --color2: rgb(94, 169, 240);
-    --color3: rgb(211, 187, 48);
-    --color4: rgb(90, 66, 6);
-    --gray1: lightgray;
+  --bg1: #ff6f61; 
+  --bg2: #e63946; 
+  --bg3: #d62828;
+  --color1: #f8f9fa; 
+  --color2: #ffb3b3;
+  --color3: #ff4d4d; 
+  --color4: #c70039; 
+  --gray1: #adb5bd; 
 } */
