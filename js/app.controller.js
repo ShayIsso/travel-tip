@@ -18,6 +18,7 @@ window.app = {
   onShareLoc,
   onSetSortBy,
   onSetFilterBy,
+  onSaveLoc
 }
 
 function onInit() {
@@ -43,8 +44,8 @@ function renderLocs(locs) {
       const className = loc.id === selectedLocId ? 'active' : ''
       const distance = gUserPose
         ? 'Distance: ' +
-          utilService.getDistance(gUserPose, loc.geo, 'K') +
-          ' KM.'
+        utilService.getDistance(gUserPose, loc.geo, 'K') +
+        ' KM.'
         : ''
       return `
         <li class="loc ${className}" data-id="${loc.id}">
@@ -55,22 +56,18 @@ function renderLocs(locs) {
             </h4>
             <p class="muted">
                 Created: ${utilService.elapsedTime(loc.createdAt)}
-                ${
-                  loc.createdAt !== loc.updatedAt
-                    ? ` | Updated: ${utilService.elapsedTime(loc.updatedAt)}`
-                    : ''
-                }
+                ${loc.createdAt !== loc.updatedAt
+          ? ` | Updated: ${utilService.elapsedTime(loc.updatedAt)}`
+          : ''
+        }
             </p>
             <div class="loc-btns">     
-               <button title="Delete" onclick="app.onRemoveLoc('${
-                 loc.id
-               }')">🗑️</button>
-               <button title="Edit" onclick="app.onUpdateLoc('${
-                 loc.id
-               }')">✏️</button>
-               <button title="Select" onclick="app.onSelectLoc('${
-                 loc.id
-               }')">🗺️</button>
+               <button title="Delete" onclick="app.onRemoveLoc('${loc.id
+        }')">🗑️</button>
+               <button title="Edit" onclick="app.onUpdateLoc('${loc.id
+        }')">✏️</button>
+               <button title="Select" onclick="app.onSelectLoc('${loc.id
+        }')">🗺️</button>
             </div>     
         </li>`
     })
@@ -147,68 +144,39 @@ function onSearchAddress(ev) {
 }
 
 function onAddLoc(geo) {
-  const elLocDialog = document.querySelector('.location-dialog')
-  onDialog(geo).then((loc) => {
-    locService
-      .save(loc)
-      .then((savedLoc) => {
-        flashMsg(`Added Location (id: ${savedLoc.id})`)
-        utilService.updateQueryParams({ locId: savedLoc.id })
-        loadAndRenderLocs()
-      })
-      .catch((err) => {
-        console.error('Error adding location:', err)
-        flashMsg('Cannot add location')
-      })
-      .finally(() => {
-        restDialog()
-      })
-  })
+  const elDialog = document.querySelector('dialog.loc-edit')
+  elDialog.dataset.geo = JSON.stringify(geo)
+  elDialog.querySelector('input[name=name]').value = geo.address
+  elDialog.querySelector('input[name=id]').value = ''
+  elDialog.showModal()
 }
 
-function onDialog(geo, loc = null) {
-  return new Promise((resolve, reject) => {
-    const elLocDialog = document.querySelector('.location-dialog')
+function onSaveLoc(ev) {
+  ev.preventDefault()
+  const elDialog = document.querySelector('dialog.loc-edit')
+  const elInputId = elDialog.querySelector('input[name=id]')
+  const elInputName = elDialog.querySelector('input[name=name]')
+  const elInputRate = elDialog.querySelector('input[name=rate]')
+  if (!elInputName.value || !elInputRate.value) return flashMsg('Missing info')
 
-    const elSaveBtn = elLocDialog.querySelector('.save-btn')
-    const elCancelBtn = elLocDialog.querySelector('.cancel-btn')
+  const loc = {
+    id: elInputId.value,
+    name: elInputName.value,
+    rate: +elInputRate.value,
+  }
+  if (!loc.id) loc.geo = JSON.parse(elDialog.dataset.geo)
 
-    if (loc) {
-      elLocDialog.querySelector('.location-name').value = loc.name
-      elLocDialog.querySelector('.location-rate').value = loc.rate
-    }
-    elLocDialog.showModal()
-
-    elCancelBtn.onclick = () => {
-      elLocDialog.close()
-      reject('Dialog canceled')
-    }
-
-    elSaveBtn.onclick = () => {
-      const name = elLocDialog.querySelector('.location-name').value
-      const rate = +elLocDialog.querySelector('.location-rate').value
-
-      elLocDialog.dataset.geo = JSON.stringify(geo)
-      elLocDialog.dataset.name = name
-      elLocDialog.dataset.rate = rate
-      elLocDialog.close()
-
-      resolve({
-        geo,
-        name,
-        rate,
-      })
-    }
-  })
-}
-
-function restDialog() {
-  const elLocDialog = document.querySelector('.location-dialog')
-  elLocDialog.dataset.geo = ''
-  elLocDialog.dataset.name = ''
-  elLocDialog.dataset.rate = ''
-  elLocDialog.querySelector('.location-name').value = ''
-  elLocDialog.querySelector('.location-rate').value = ''
+  locService.save(loc)
+    .then((savedLoc) => {
+      elDialog.close()
+      flashMsg(`Location saved`)
+      utilService.updateQueryParams({ locId: savedLoc.id })
+      loadAndRenderLocs()
+    })
+    .catch((err) => {
+      console.error('OOPs:', err)
+      flashMsg('Cannot add location')
+    })
 }
 
 function loadAndRenderLocs() {
@@ -238,27 +206,19 @@ function onPanToUserPos() {
 }
 
 function onUpdateLoc(locId) {
-  locService.getById(locId).then((loc) => {
-    onDialog(loc.geo, loc)
-      .then((updatedLocData) => {
-        loc.name = updatedLocData.name
-        loc.rate = updatedLocData.rate
-        return locService.save(loc)
-      })
-      .then((savedLoc) => {
-        flashMsg(
-          `Location updated: ${savedLoc.name} with rate: ${savedLoc.rate}`
-        )
-        loadAndRenderLocs()
-      })
-      .catch((err) => {
-        console.error('Error updating location:', err)
-        flashMsg('Cannot update location')
-      })
-      .finally(() => {
-        restDialog()
-      })
-  })
+  locService.getById(locId)
+    .then((loc) => {
+      const elDialog = document.querySelector('dialog.loc-edit')
+      const elInputId = elDialog.querySelector('input[name=id]')
+      const elInputName = elDialog.querySelector('input[name=name]')
+      const elInputRate = elDialog.querySelector('input[name=rate]')
+
+      elInputId.value = loc.id
+      elInputName.value = loc.name
+      elInputRate.value = loc.rate
+
+      elDialog.showModal()
+    })
 }
 
 function onSelectLoc(locId) {

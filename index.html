@@ -82,12 +82,11 @@
             </div>
         </div>
 
-        <dialog class="location-dialog" id="locationDialog">
-            <form method="dialog">
-                <input class="location-name" type="text" placeholder="Enter location name" required>
-                <input class="location-rate" type="number" placeholder="Enter location rate" min="1" max="5" step="1"
-                    required>
-                <button class="cancel-btn">Cancel</button>
+        <dialog class="loc-edit">
+            <form onsubmit="app.onSaveLoc(event)">
+                <input name="id" type="hidden" />
+                <input name="name" type="text" autofocus >
+                <input name="rate" type="number" value="3" min="1" max="5" />
                 <button class="save-btn">Save</button>
             </form>
         </dialog>
